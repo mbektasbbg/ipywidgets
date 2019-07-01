@@ -172,6 +172,38 @@ function activateWidgetExtension(app: JupyterFrontEnd, tracker: INotebookTracker
 
   const {commands} = app;
 
+  const jupyterlabConsolePluginId = 'jupyterlab_output_console';
+  const hasJupyterlabConsolePlugin = app.hasPlugin(jupyterlabConsolePluginId);
+  let jlabConsoleOutput: any = null;
+
+  if (hasJupyterlabConsolePlugin) {
+      try {
+          const appAny = app as any;
+          const jupyterlabConsolePlugin: any = appAny._pluginMap ?
+                                              appAny._pluginMap[jupyterlabConsolePluginId] : undefined;
+          if (jupyterlabConsolePlugin.activated) {
+            jlabConsoleOutput = jupyterlabConsolePlugin.service;
+          } else {
+              app.activatePlugin(jupyterlabConsolePluginId).then(response => {
+                jlabConsoleOutput = jupyterlabConsolePlugin.service;
+              });
+          }
+      } catch (error) {
+          console.error("Failed to register for JLab Console Output", error);
+      }
+  }
+
+  const registerUnhandledMessageHandler = (context: DocumentRegistry.IContext<INotebookModel>) => {
+    let wManager = Private.widgetManagerProperty.get(context);
+    if (wManager) {
+      wManager.registerUnhandledCommMessageListener({
+        onMessage(msg: any) {
+          jlabConsoleOutput.logMessage(msg);
+        }
+      });
+    }
+  };
+
 
   settingRegistry.load(plugin.id).then((settings: ISettingRegistry.ISettings) => {
     settings.changed.connect(updateSettings);
@@ -199,6 +231,8 @@ function activateWidgetExtension(app: JupyterFrontEnd, tracker: INotebookTracker
         outputViews(app, panel.context.path)
       )
     );
+
+    registerUnhandledMessageHandler(panel.context);
   });
   tracker.widgetAdded.connect((sender, panel) => {
     registerWidgetManager(
@@ -209,6 +243,8 @@ function activateWidgetExtension(app: JupyterFrontEnd, tracker: INotebookTracker
         outputViews(app, panel.context.path)
       )
     );
+
+    registerUnhandledMessageHandler(panel.context);
   });
 
   // Add a command for creating a new Markdown file.
