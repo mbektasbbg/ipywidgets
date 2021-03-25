@@ -210,6 +210,7 @@ jobs:
         cd ui-tests
         npm run test
     - name: Upload UI Test artifacts
+      if: always()
       uses: actions/upload-artifact@v2
       with:
         name: ui-test-output
