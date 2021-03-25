@@ -91,7 +91,7 @@ export class ButtonView extends DOMWidgetView {
         }
         this.el.appendChild(i);
       }
-      this.el.appendChild(document.createTextNode(description));
+      this.el.appendChild(document.createTextNode('btn:' + description));
     }
     return super.update();
   }
