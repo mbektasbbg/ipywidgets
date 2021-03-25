@@ -68,7 +68,7 @@ export class DescriptionView extends DOMWidgetView {
     if (description.length === 0) {
       this.label.style.display = 'none';
     } else {
-      this.label.innerHTML = description;
+      this.label.innerHTML = `lbl: ${description}`;
       this.typeset(this.label);
       this.label.style.display = '';
     }
